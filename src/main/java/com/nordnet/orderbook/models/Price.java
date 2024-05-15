@@ -1,6 +1,8 @@
 package com.nordnet.orderbook.models;
 
-public class Price {
+import java.io.Serializable;
+
+public class Price implements Serializable {
   public double value;
   public Currency currency;
 

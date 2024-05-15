@@ -4,9 +4,15 @@ import com.nordnet.orderbook.models.Order;
 import com.nordnet.orderbook.models.OrderSide;
 import com.nordnet.orderbook.models.Price;
 import com.nordnet.orderbook.models.Summary;
+import com.nordnet.orderbook.services.OrderService;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import lombok.Data;
+import lombok.extern.java.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,12 +26,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
+  @Autowired
+  OrderService orderService;
+  Logger logger = LoggerFactory.getLogger(OrderController.class);
+
+  // Added for ease of testing
+  @GetMapping
+  public ResponseEntity<List<Order>> getAllOrders() {
+    List<Order> orders = orderService.getAllOrders();
+    if (orders.isEmpty()) {
+      return (ResponseEntity.notFound().build());
+    } else {
+      return (ResponseEntity.ok(orders));
+    }
+  }
 
   @PostMapping
   public ResponseEntity<UUID> createOrder(@RequestBody CreateOrderRequest createRequest) {
-    // TODO: Logic to create the order
     Order newOrder = new Order(createRequest.ticker, createRequest.side, createRequest.volume,
         createRequest.price);
+    orderService.saveOrder(newOrder);
     return new ResponseEntity<>(newOrder.getId(), HttpStatus.CREATED);
   }
 
