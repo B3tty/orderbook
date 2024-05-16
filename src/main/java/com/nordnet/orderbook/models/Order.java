@@ -6,7 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,13 +32,13 @@ public class Order {
   @NotNull
   public double volume;
   public Price price;
-  public LocalDate dateCreated;
+  public Instant instantCreated;
 
   public Order(String ticker, OrderSide side, double volume, Price price) {
     this.ticker = ticker;
     this.side = side;
     this.volume = volume;
     this.price = price;
-    this.dateCreated = LocalDate.now();
+    this.instantCreated = Instant.now(); // This will use UTC time zone
   }
 }

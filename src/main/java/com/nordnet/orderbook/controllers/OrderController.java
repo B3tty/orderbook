@@ -65,11 +65,8 @@ public class OrderController {
   public ResponseEntity<Summary> getOrderSummary(@RequestParam @NotBlank String ticker,
       @RequestParam @NotBlank String date, @RequestParam @NotBlank String side) {
     try {
-      logger.info("first log");
       LocalDate parsedDate = LocalDate.parse(date, formatter);
-      logger.info("date parsed");
       Summary summary = orderService.getSummary(ticker, parsedDate, OrderSide.valueOf(side));
-      logger.info("summary gotten");
       return new ResponseEntity<>(summary, HttpStatus.OK);
     } catch (DateTimeParseException | IllegalArgumentException | NullPointerException e) {
       throw new IllegalArgumentException(e.getMessage());

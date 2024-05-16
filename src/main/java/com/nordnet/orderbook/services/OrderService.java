@@ -5,7 +5,9 @@ import com.nordnet.orderbook.models.OrderSide;
 import com.nordnet.orderbook.models.Price;
 import com.nordnet.orderbook.models.Summary;
 import com.nordnet.orderbook.repositories.OrderRepository;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
@@ -50,10 +52,15 @@ public class OrderService {
   private List<Order> getMatchingOrders(String ticker, LocalDate date, OrderSide orderSide) {
     List<Order> orders = new ArrayList<>();
     orderRepository.findAll().forEach(order -> {
-      if (order.getTicker().equals(ticker) && order.getSide().equals(orderSide) && order.getDateCreated().equals(date)) {
+      if (order.getTicker().equals(ticker) && order.getSide().equals(orderSide) && isTheSameDay(date, order.getInstantCreated())) {
         orders.add(order);
       }
     });
     return (orders);
+  }
+
+  private boolean isTheSameDay(LocalDate date1, Instant instant2) {
+    LocalDate date2 = instant2.atOffset(ZoneOffset.UTC).toLocalDate();
+    return date1.isEqual(date2);
   }
 }

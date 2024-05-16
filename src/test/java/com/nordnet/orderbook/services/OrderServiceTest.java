@@ -12,6 +12,7 @@ import com.nordnet.orderbook.models.OrderSide;
 import com.nordnet.orderbook.models.Price;
 import com.nordnet.orderbook.models.Summary;
 import com.nordnet.orderbook.repositories.OrderRepository;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ public class OrderServiceTest {
   private static UUID uuid = UUID.fromString("c5a2f509-20dd-43bf-8e2d-61fb7dabae40");
 
   private Order referenceOrder = new Order(uuid, "TIC", OrderSide.BUY, 53.0, new Price(),
-      LocalDate.now());
+      Instant.now());
 
   // region saveOrder
 
@@ -51,7 +52,7 @@ public class OrderServiceTest {
     assertEquals(referenceOrder.volume, result.volume);
     assertEquals(referenceOrder.price.value, result.price.value);
     assertEquals(referenceOrder.price.currency, result.price.currency);
-    assertEquals(referenceOrder.dateCreated, result.dateCreated);
+    assertEquals(referenceOrder.instantCreated, result.instantCreated);
     verify(orderRepository, times(1)).save(referenceOrder);
   }
 
@@ -116,7 +117,7 @@ public class OrderServiceTest {
     when(orderRepository.findAll()).thenReturn(new ArrayList<>(List.of(referenceOrder)));
 
     Summary actualSummary = orderService.getSummary(referenceOrder.getTicker(),
-        referenceOrder.getDateCreated(), referenceOrder.getSide());
+        LocalDate.now(), referenceOrder.getSide());
 
     assertNotNull(actualSummary);
     assertEquals(referenceOrder.price.value, actualSummary.averagePrice);
@@ -130,7 +131,7 @@ public class OrderServiceTest {
     when(orderRepository.findAll()).thenReturn(new ArrayList<>(List.of(referenceOrder)));
 
     Summary actualSummary = orderService.getSummary("TOTO",
-        referenceOrder.getDateCreated(), referenceOrder.getSide());
+        LocalDate.now(), referenceOrder.getSide());
 
     assertNotNull(actualSummary);
     assertEquals(0, actualSummary.averagePrice);
