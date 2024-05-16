@@ -3,7 +3,6 @@ package com.nordnet.orderbook.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,9 +10,10 @@ import static org.mockito.Mockito.when;
 import com.nordnet.orderbook.models.Order;
 import com.nordnet.orderbook.models.OrderSide;
 import com.nordnet.orderbook.models.Price;
+import com.nordnet.orderbook.models.Summary;
 import com.nordnet.orderbook.repositories.OrderRepository;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,9 +34,9 @@ public class OrderServiceTest {
   private static UUID uuid = UUID.fromString("c5a2f509-20dd-43bf-8e2d-61fb7dabae40");
 
   private Order referenceOrder = new Order(uuid, "TIC", OrderSide.BUY, 53.0, new Price(),
-      new Date());
+      LocalDate.now());
 
-  // saveOrder
+  // region saveOrder
 
   @Test
   void saveOrder() {
@@ -55,8 +55,10 @@ public class OrderServiceTest {
     verify(orderRepository, times(1)).save(referenceOrder);
   }
 
+  // endregion
 
-  // getAllOrders
+
+  // region getAllOrders
 
   @Test
   void getAllOrders() {
@@ -69,7 +71,19 @@ public class OrderServiceTest {
     verify(orderRepository, times(1)).findAll();
   }
 
-  // getOrderById
+  @Test
+  void getAllOrders_WhenEmpty() {
+    when(orderRepository.findAll()).thenReturn(new ArrayList<>());
+    List<Order> result = orderService.getAllOrders();
+
+    assertNotNull(result);
+    assertEquals(0, result.size());
+    verify(orderRepository, times(1)).findAll();
+  }
+
+  // endregion
+
+  // region getOrderById
 
   @Test
   void getOrderById() {
@@ -93,6 +107,37 @@ public class OrderServiceTest {
     verify(orderRepository, times(1)).findById(referenceOrder.getId());
   }
 
+  // endregion
 
+  // region getSummary
 
+  @Test
+  void getSummary_WhenOneRelevantOrderPresent() {
+    when(orderRepository.findAll()).thenReturn(new ArrayList<>(List.of(referenceOrder)));
+
+    Summary actualSummary = orderService.getSummary(referenceOrder.getTicker(),
+        referenceOrder.getDateCreated(), referenceOrder.getSide());
+
+    assertNotNull(actualSummary);
+    assertEquals(referenceOrder.price.value, actualSummary.averagePrice);
+    assertEquals(referenceOrder.price.value, actualSummary.maxPrice);
+    assertEquals(referenceOrder.price.value, actualSummary.minPrice);
+    assertEquals(1, actualSummary.totalNumber);
+  }
+
+  @Test
+  void getSummary_WhenNoRelevantOrderPresent() {
+    when(orderRepository.findAll()).thenReturn(new ArrayList<>(List.of(referenceOrder)));
+
+    Summary actualSummary = orderService.getSummary("TOTO",
+        referenceOrder.getDateCreated(), referenceOrder.getSide());
+
+    assertNotNull(actualSummary);
+    assertEquals(0, actualSummary.averagePrice);
+    assertEquals(0, actualSummary.maxPrice);
+    assertEquals(0, actualSummary.minPrice);
+    assertEquals(0, actualSummary.totalNumber);
+  }
+
+  // endregion
 }

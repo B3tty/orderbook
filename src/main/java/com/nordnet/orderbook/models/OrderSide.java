@@ -1,8 +1,9 @@
 package com.nordnet.orderbook.models;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
+@NotBlank
 @Getter
 public enum OrderSide {
   BUY,

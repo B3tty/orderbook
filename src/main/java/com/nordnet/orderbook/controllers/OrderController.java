@@ -5,11 +5,13 @@ import com.nordnet.orderbook.models.OrderSide;
 import com.nordnet.orderbook.models.Price;
 import com.nordnet.orderbook.models.Summary;
 import com.nordnet.orderbook.services.OrderService;
-import java.util.Date;
+import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 import lombok.Data;
-import lombok.extern.java.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ public class OrderController {
   @Autowired
   OrderService orderService;
   Logger logger = LoggerFactory.getLogger(OrderController.class);
+  static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   // Added for ease of testing
   @GetMapping
@@ -43,16 +46,14 @@ public class OrderController {
 
   @PostMapping
   public ResponseEntity<UUID> createOrder(@RequestBody CreateOrderRequest createRequest) {
-    Order newOrder = new Order(createRequest.ticker, createRequest.side, createRequest.volume,
-        createRequest.price);
-    orderService.saveOrder(newOrder);
+    Order newOrder = orderService.saveOrder(new Order(createRequest.ticker, createRequest.side, createRequest.volume,
+        createRequest.price));
     return new ResponseEntity<>(newOrder.getId(), HttpStatus.CREATED);
   }
 
   @GetMapping("/{orderId}")
   public ResponseEntity<Order> getOrder(@PathVariable UUID orderId) {
-    // TODO: Logic to fetch the order by ID
-    Order order = new Order();
+    Order order = orderService.getOrderById(orderId);
     if (order != null) {
       return new ResponseEntity<>(order, HttpStatus.OK);
     } else {
@@ -61,10 +62,18 @@ public class OrderController {
   }
 
   @GetMapping("/summary")
-  public ResponseEntity<Summary> getOrderSummary(@RequestParam SummaryRequest summaryRequest) {
-    // TODO: Logic to calculate order summary
-    Summary summary = new Summary();
-    return new ResponseEntity<>(summary, HttpStatus.OK);
+  public ResponseEntity<Summary> getOrderSummary(@RequestParam @NotBlank String ticker,
+      @RequestParam @NotBlank String date, @RequestParam @NotBlank String side) {
+    try {
+      logger.info("first log");
+      LocalDate parsedDate = LocalDate.parse(date, formatter);
+      logger.info("date parsed");
+      Summary summary = orderService.getSummary(ticker, parsedDate, OrderSide.valueOf(side));
+      logger.info("summary gotten");
+      return new ResponseEntity<>(summary, HttpStatus.OK);
+    } catch (DateTimeParseException | IllegalArgumentException | NullPointerException e) {
+      throw new IllegalArgumentException(e.getMessage());
+    }
   }
 
   @Data
@@ -73,12 +82,5 @@ public class OrderController {
     public OrderSide side;
     public double volume;
     public Price price;
-  }
-
-  @Data
-  public static class SummaryRequest {
-    public String ticker;
-    public Date date;
-    public OrderSide orderSide;
   }
 }
