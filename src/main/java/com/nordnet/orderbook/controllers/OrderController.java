@@ -5,7 +5,12 @@ import com.nordnet.orderbook.models.OrderSide;
 import com.nordnet.orderbook.models.Price;
 import com.nordnet.orderbook.models.Summary;
 import com.nordnet.orderbook.services.OrderService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -33,19 +38,8 @@ public class OrderController {
   Logger logger = LoggerFactory.getLogger(OrderController.class);
   static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-  // Added for ease of testing
-  @GetMapping
-  public ResponseEntity<List<Order>> getAllOrders() {
-    List<Order> orders = orderService.getAllOrders();
-    if (orders.isEmpty()) {
-      return (ResponseEntity.notFound().build());
-    } else {
-      return (ResponseEntity.ok(orders));
-    }
-  }
-
   @PostMapping
-  public ResponseEntity<UUID> createOrder(@RequestBody CreateOrderRequest createRequest) {
+  public ResponseEntity<UUID> createOrder(@RequestBody @Valid CreateOrderRequest createRequest) {
     Order newOrder = orderService.saveOrder(new Order(createRequest.ticker, createRequest.side, createRequest.volume,
         createRequest.price));
     return new ResponseEntity<>(newOrder.getId(), HttpStatus.CREATED);
@@ -63,21 +57,29 @@ public class OrderController {
 
   @GetMapping("/summary")
   public ResponseEntity<Summary> getOrderSummary(@RequestParam @NotBlank String ticker,
-      @RequestParam @NotBlank String date, @RequestParam @NotBlank String side) {
+      @RequestParam @NotBlank @Pattern(regexp="^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          message="date should be in format yyyy-MM-dd") String date,
+      @RequestParam @NotBlank String side) {
     try {
       LocalDate parsedDate = LocalDate.parse(date, formatter);
       Summary summary = orderService.getSummary(ticker, parsedDate, OrderSide.valueOf(side));
       return new ResponseEntity<>(summary, HttpStatus.OK);
     } catch (DateTimeParseException | IllegalArgumentException | NullPointerException e) {
-      throw new IllegalArgumentException(e.getMessage());
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
   }
 
   @Data
   public static class CreateOrderRequest {
+    @NotBlank
     public String ticker;
+    @Valid
+    @NotNull
     public OrderSide side;
+    @Positive
     public double volume;
+    @Valid
+    @NotNull
     public Price price;
   }
 }

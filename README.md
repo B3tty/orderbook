@@ -6,7 +6,24 @@ Backend assignment for the Nordnet recruiting process
 
 - Java 21: latest version with LTS
 
-## Layered architecture
+## Architecture
+
+This RESTful API service is built using the Spring Boot framework, which provides a lightweight
+and easy-to-use platform for building web applications in Java.
+
+The service follows a layered architecture pattern, with the following layers:
+
+- Controller layer: This layer receives incoming HTTP requests and sends back HTTP responses. It
+  handles the input validation, and calls the appropriate service layer methods to process the requests.
+
+- Service layer: This layer contains the business logic of the application. It handles the
+  database interactions through a repository interface, and performs any necessary data processing and transformations.
+
+- Repository layer: This layer is responsible for the data access and persistence. It uses a
+  CrudRepository interface provided by Spring Data JPA to perform the basic CRUD operations on a database.
+
+- Model layer: This layer contains the data model and entities used by the application. It
+  defines the data structures that are stored and manipulated by the service, such as orders.
 
 
 ## How to Run
@@ -51,12 +68,6 @@ as a randomly generated UUID).
 
 }
 ```
-
-### GET all orders
-
-This endpoint has no arguments and will return every order that has been created
-
-- url `http://localhost:8080/orders`
 
 ### GET an order by id
 

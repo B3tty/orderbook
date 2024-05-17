@@ -24,12 +24,10 @@ public class Order {
   @Id
   @GeneratedValue
   public UUID id;
-  @NotBlank
   public String ticker;
   public OrderSide side;
 
   // This might make more sense as "long" if we only buy/sell integer numbers of stocks
-  @NotNull
   public double volume;
   public Price price;
   public Instant instantCreated;

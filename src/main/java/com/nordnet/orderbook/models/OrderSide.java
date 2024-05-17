@@ -1,9 +1,9 @@
 package com.nordnet.orderbook.models;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
-@NotBlank
+@NotNull
 @Getter
 public enum OrderSide {
   BUY,

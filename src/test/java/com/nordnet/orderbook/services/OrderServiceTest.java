@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.nordnet.orderbook.models.Currency;
 import com.nordnet.orderbook.models.Order;
 import com.nordnet.orderbook.models.OrderSide;
 import com.nordnet.orderbook.models.Price;
@@ -34,8 +35,8 @@ public class OrderServiceTest {
 
   private static UUID uuid = UUID.fromString("c5a2f509-20dd-43bf-8e2d-61fb7dabae40");
 
-  private Order referenceOrder = new Order(uuid, "TIC", OrderSide.BUY, 53.0, new Price(),
-      Instant.now());
+  private Order referenceOrder = new Order(uuid, "TIC", OrderSide.BUY, 53.0, new Price(42,
+      new Currency()), Instant.now());
 
   // region saveOrder
 
@@ -138,6 +139,23 @@ public class OrderServiceTest {
     assertEquals(0, actualSummary.maxPrice);
     assertEquals(0, actualSummary.minPrice);
     assertEquals(0, actualSummary.totalNumber);
+  }
+
+  @Test
+  void getSummary_WhenMultipleRelevantOrdersPresent() {
+    Order order2 = new Order(uuid, "TIC", OrderSide.BUY, 53.0, new Price(20, new Currency()),
+        Instant.now());
+
+    when(orderRepository.findAll()).thenReturn(new ArrayList<>(List.of(referenceOrder, order2)));
+
+    Summary actualSummary = orderService.getSummary(referenceOrder.getTicker(),
+        LocalDate.now(), referenceOrder.getSide());
+
+    assertNotNull(actualSummary);
+    assertEquals(31, actualSummary.averagePrice);
+    assertEquals(referenceOrder.price.value, actualSummary.maxPrice);
+    assertEquals(order2.price.value, actualSummary.minPrice);
+    assertEquals(2, actualSummary.totalNumber);
   }
 
   // endregion
