@@ -1,15 +1,22 @@
 # Orderbook
 
-Backend assignment for the Nordnet recruiting process
+The Order Book Microservice is a simplified implementation of an order book system built using Java and Spring Boot.
+This microservice provides endpoints for creating orders, fetching individual orders, and retrieving order summaries based on ticker and date.
 
 ## Technical choices
 
-- Java 21: latest version with LTS
+- Java and Spring Boot: Chosen for their robustness, ease of development, and extensive 
+  ecosystem of libraries and tools. Java 21 was chosen as the latest version with Long Term Support.
+
+- Maven: Used for dependency management and project build automation.
+
+- RESTful API: Implemented using Spring MVC to provide a lightweight, scalable, and 
+platform-independent interface for interacting with the microservice.
+
+- MockMvc for Integration Testing: Used for integration testing of controller endpoints, 
+providing a simulated environment for testing HTTP requests and responses.
 
 ## Architecture
-
-This RESTful API service is built using the Spring Boot framework, which provides a lightweight
-and easy-to-use platform for building web applications in Java.
 
 The service follows a layered architecture pattern, with the following layers:
 
@@ -38,9 +45,11 @@ To run the order book API, you can follow these steps:
 
 - Start the application using Maven: `mvn spring-boot:run`
 
+- Optional: Run the tests: `mvn clean verify`. You can also run the tests directly in your IDE.
+
 The API will be available at http://localhost:8080/orders
 
-## How to call
+## How to make calls
 
 To call this API, you can use an agent like Postman.
 
@@ -52,7 +61,7 @@ as a randomly generated UUID).
 
 - url: `http://localhost:8080/orders` 
 
-- Body:
+- input: details of the order you wish to create, as the body of the request
 ```json
 {
     "ticker": "SAVE",
@@ -69,12 +78,16 @@ as a randomly generated UUID).
 }
 ```
 
+- output: uuid of the created order
+
 ### GET an order by id
 
 This endpoint returns an order from id, passed in the path
 
 - url `http://localhost:8080/orders/{id}`
   (for example `http://localhost:8080/orders/3427e677-829d-4f38-bd74-d05327266cdf)
+- input: id of the order, as a path variable
+- output: the relevant order, or 404 if no relevant order was found
 
 ### GET a summary of orders
 
@@ -82,7 +95,37 @@ This endpoint returns a summary (average price, minimum and maximum price, numbe
 a given ticker, side, and date, passed as request parameters
 
 - url `http://localhost:8080/orders/summary?ticker={yourTicker}&date={yourDate}&side={SELL|BUY}`
-- parameters
-  - ticker
-  - date in a "yyyy-MM-dd" format
-  - order side, as SELL or BUY
+- input: the search parameters for the order, passed as parameters of the request
+  - `ticker`
+  - `date` in a "yyyy-MM-dd" format
+  - `side`, as SELL or BUY
+- output: a summary of the matching orders, including average, min and max prices, and the total 
+  number of relevant orders
+
+## Possible improvements
+
+- Database integration
+
+  Implement persistence using a relational database like PostgreSQL or MySQL for storing orders and order data.
+  As of now, the order repository will be emptied each time the service is stopped and restarted.
+
+- Authentication and Authorization
+
+  We could add security measures such as JWT-based authentication and role-based access control to 
+  secure endpoints and restrict access.
+
+- Swagger Documentation
+
+  Adding Swagger for automatic generation of API documentation would make it easier for 
+  consumers to understand and interact with the API.
+
+- Logging and Monitoring
+
+  For a production service, we should add logging to capture important events and errors, and 
+  integrate with monitoring tools like Prometheus and Grafana for real-time monitoring of 
+  application health and performance metrics.
+
+- Summary function
+
+  In the current state, it doesn't take the currency into consideration. For a real case, we 
+  would need to convert all the prices in the same currency in order to have meaningful results.

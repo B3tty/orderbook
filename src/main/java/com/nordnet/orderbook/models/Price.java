@@ -1,6 +1,5 @@
 package com.nordnet.orderbook.models;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;

@@ -158,5 +158,22 @@ public class OrderServiceTest {
     assertEquals(2, actualSummary.totalNumber);
   }
 
+  @Test
+  void getSummary_WhenMultipleOrdersButDifferentSidesPresent() {
+    Order order2 = new Order(uuid, "TIC", OrderSide.SELL, 53.0, new Price(20, new Currency()),
+        Instant.now());
+
+    when(orderRepository.findAll()).thenReturn(new ArrayList<>(List.of(referenceOrder, order2)));
+
+    Summary actualSummary = orderService.getSummary(referenceOrder.getTicker(),
+        LocalDate.now(), referenceOrder.getSide());
+
+    assertNotNull(actualSummary);
+    assertEquals(referenceOrder.price.value, actualSummary.averagePrice);
+    assertEquals(referenceOrder.price.value, actualSummary.maxPrice);
+    assertEquals(referenceOrder.price.value, actualSummary.minPrice);
+    assertEquals(1, actualSummary.totalNumber);
+  }
+
   // endregion
 }
